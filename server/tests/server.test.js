@@ -7,10 +7,13 @@ const {Todo} = require('./../models/todo');
 
 const todos = [{
 	_id: new ObjectID(),
-	text: 'First test todo'
+	text: 'First test todo',
+	completed: false
 }, {
 	_id: new ObjectID(),
-	text: 'Second test todo'
+	text: 'Second test todo',
+	completed: true,
+	completedAt: 333
 }];
 
 beforeEach((done) => {
@@ -19,6 +22,7 @@ beforeEach((done) => {
 	}).then(() => done());
 });
 
+//testing adding Todo!
 describe('POST /todos', () => {
 	it('should create a new todo', (done) => {
 		var text = 'Test todo text';
@@ -61,7 +65,9 @@ describe('POST /todos', () => {
 			});
 		});
 	});
-});
+})
+
+//testing get ALL todos
 describe('GET /todos', () => {
 	it('should get all todos', (done) => {
 		request(app)
@@ -73,6 +79,8 @@ describe('GET /todos', () => {
 		.end(done);
 	});
 });
+
+//testing getbyID
 describe('GET /todos/:id', () => {
 	it('should return todo doc', (done) => {
 		request(app)
@@ -100,6 +108,7 @@ describe('GET /todos/:id', () => {
 	});
 });
 
+//testing delete
 describe('/DELETE /todos/:id', () => {
 	it('should remove a todo', (done) => {
 		var fakeID = todos[1]._id.toHexString();
@@ -135,3 +144,51 @@ describe('/DELETE /todos/:id', () => {
 		.end(done);
 	});
 });
+
+//testing update todo!
+describe('/PATCH /todos/:id', () => {
+	it('should update the todo', (done) => {
+		var fakeID = todos[0]._id.toHexString();
+		var newText = 'new text!';
+
+		request(app)
+		.patch(`/todos/${fakeID}`)
+		.send({
+			completed: true,
+			text: newText
+		})
+		.expect(200)
+		.expect((res) => {
+			expect(res.body.todo.text).toBe(newText);
+			expect(res.body.todo.completed).toBe(true);
+			expect(typeof res.body.todo.completedAt).toBe('number');
+		})
+		.end(done);
+	});
+	it('should clear completedAt when todo is not completed', (done) => {
+		var fakeID = todos[1]._id.toHexString();
+		var newText = 'even newer text'
+
+		request(app)
+		.patch(`/todos/${fakeID}`)
+		.send({
+			text: newText,
+			completed: false
+		})
+		.expect(200)
+		.expect((res) => {
+			expect(res.body.todo.text).toBe(newText);
+			expect(res.body.todo.completed).toBe(false);
+			expect(res.body.todo.completedAt).toBeFalsy();
+		})
+		.end(done)
+	});
+});
+
+
+
+
+
+
+
+
